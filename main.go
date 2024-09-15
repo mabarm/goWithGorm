@@ -1,7 +1,9 @@
 package main
 
 import (
+	"go-fiber-postgres/storage"
 	"log"
+	"net/http"
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/joho/godotenv"
@@ -31,7 +33,18 @@ func (r *Repository) SetupRoutes(app *fiber.App) {
 }
 
 func (r *Repository) CreateBook(context *fiber.Ctx) error {
+	book := Book{}
 
+	err := context.BodyParser(&book)
+
+	if err != nil {
+		context.Status(http.StatusUnprocessableEntity).JSON(&fiber.Map{"message": "coud not create book"})
+		return err
+	}
+
+	context.Status(http.StatusOK).JSON(&fiber.Map{
+		"message": "book has been added"})
+	return nil
 }
 
 func (r *Repository) DeleteBook(id string) {
