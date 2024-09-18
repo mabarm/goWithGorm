@@ -44,15 +44,22 @@ func (r *Repository) CreateBook(context *fiber.Ctx) error {
 
 	// If there is an error while parsing the request body, return a 422 Unprocessable Entity status
 	// and respond with an error message
-
 	if err != nil {
 		// Respond with 422 status code and error message if parsing fails
 		context.Status(http.StatusUnprocessableEntity).
-			JSON(&fiber.Map{"message": "could not create book"})
+			JSON(&fiber.Map{"message": "request failed"})
 		return err
 	}
 
-	// If parsing succeeds, return a 200 OK status and respond with a success message
+	err = r.DB.Create(&book).Error
+	//If unable to create book in db
+	if err != nil {
+		context.Status(http.StatusBadRequest).JSON(&fiber.Map{
+			"message": "could not create book"})
+		return err
+	}
+
+	// If everything succeeds, return a 200 OK status and respond with a success message
 	context.Status(http.StatusOK).
 		JSON(&fiber.Map{"message": "book has been added"})
 
@@ -60,12 +67,74 @@ func (r *Repository) CreateBook(context *fiber.Ctx) error {
 	return nil
 }
 
-func (r *Repository) DeleteBook(id string) {
+func (r *Repository) DeleteBook(context *fiber.Ctx) error {
+	bookModel := models.Books{}
 
+	id := context.Params("id")
+
+	if id == "" {
+		context.Status(http.StatusInternalServerError).JSON(&fiber.Map{
+			"message": "id cannot be empty"})
+		return nil
+	}
+
+	err := r.DB.Delete(bookModel, id).Error
+
+	if err != nil {
+		context.Status(http.StatusBadRequest).JSON(&fiber.Map{
+			"message": "could not delete book",
+		})
+		return err
+
+	}
+
+	context.Status(http.StatusOK).JSON(&fiber.Map{"message": "book deleted successfully"})
+	return nil
 }
 
-func (r *Repository) GetBookByID(id string) {
+func (r *Repository) GetBookByID(context *fiber.Ctx) error {
+	// Initialize an empty book model to store the result of the query.
+	bookModel := &models.Books{}
 
+	// Retrieve the "id" parameter from the URL. This ID will be used to fetch the specific book.
+	id := context.Params("id")
+
+	// Check if the "id" parameter is empty. If it is, return a 400 Bad Request response.
+	if id == "" {
+		context.Status(http.StatusBadRequest).JSON(&fiber.Map{
+			"message": "id cannot be empty", // Provide a clear error message.
+		})
+		return nil // Return nil to indicate the end of the function.
+	}
+
+	// Attempt to fetch the book with the specified ID from the database.
+	// Use 'First' because we're expecting to retrieve a single record.
+	err := r.DB.First(bookModel, id).Error
+
+	// Check if there was an error during the query.
+	if err != nil {
+		// If the error indicates that no record was found, return a 404 Not Found response.
+		if err == gorm.ErrRecordNotFound {
+			context.Status(http.StatusNotFound).JSON(&fiber.Map{
+				"message": "book not found", // Inform the client that the book was not found.
+			})
+		} else {
+			// For any other types of errors (e.g., database connectivity issues), log the error
+			// and return a 500 Internal Server Error response.
+			log.Printf("Error fetching book: %v", err) // Log the error for debugging purposes.
+			context.Status(http.StatusInternalServerError).JSON(&fiber.Map{
+				"message": "could not get the book", // Provide a general error message.
+			})
+		}
+		return err // Return the error for potential further handling.
+	}
+
+	// If no errors occurred, return a 200 OK response with the fetched book data.
+	context.Status(http.StatusOK).JSON(&fiber.Map{
+		"message": "book fetched successfully", // Inform the client that the book was fetched successfully.
+		"data":    bookModel,                   // Include the book data in the response.
+	})
+	return nil // Return nil to indicate successful completion of the function.
 }
 
 func (r *Repository) GetBooks(context *fiber.Ctx) error {
