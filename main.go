@@ -68,28 +68,38 @@ func (r *Repository) CreateBook(context *fiber.Ctx) error {
 }
 
 func (r *Repository) DeleteBook(context *fiber.Ctx) error {
-	bookModel := models.Books{}
+	// Initialize a pointer to an empty book model. This will be used to attempt deletion.
+	bookModel := &models.Books{}
 
+	// Retrieve the "id" parameter from the URL path.
 	id := context.Params("id")
 
+	// Check if the "id" parameter is empty. If it is, return a 400 Bad Request response.
 	if id == "" {
-		context.Status(http.StatusInternalServerError).JSON(&fiber.Map{
-			"message": "id cannot be empty"})
-		return nil
+		context.Status(http.StatusBadRequest).JSON(&fiber.Map{
+			"message": "id cannot be empty", // Inform the client that the ID cannot be empty.
+		})
+		return nil // Return nil to end the function execution here.
 	}
 
+	// Attempt to delete the book with the specified ID from the database.
+	// The pointer to bookModel is passed to the Delete method to perform the deletion.
 	err := r.DB.Delete(bookModel, id).Error
 
+	// Check if there was an error during the delete operation.
 	if err != nil {
-		context.Status(http.StatusBadRequest).JSON(&fiber.Map{
-			"message": "could not delete book",
+		// If an error occurred, return a 500 Internal Server Error response with a message.
+		context.Status(http.StatusInternalServerError).JSON(&fiber.Map{
+			"message": "could not delete book", // General error message indicating failure to delete.
 		})
-		return err
-
+		return err // Return the error to the caller for further handling.
 	}
 
-	context.Status(http.StatusOK).JSON(&fiber.Map{"message": "book deleted successfully"})
-	return nil
+	// If no errors occurred, return a 200 OK response indicating successful deletion.
+	context.Status(http.StatusOK).JSON(&fiber.Map{
+		"message": "book deleted successfully", // Inform the client that the book was deleted successfully.
+	})
+	return nil // Return nil to indicate that the function completed successfully.
 }
 
 func (r *Repository) GetBookByID(context *fiber.Ctx) error {
