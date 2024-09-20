@@ -26,11 +26,11 @@ type Book struct {
 
 // api contract
 func (r *Repository) SetupRoutes(app *fiber.App) {
-	// api := app.Group("/api")
-	// api.Post("/create_books", r.CreateBook) //calling a method called createBook
-	// api.Delete("/delete_book/:id", r.DeleteBook)
-	// api.Get("/get_books/:id", r.GetBookByID)
-	// api.GetAll("/books", r.GetBooks)
+	api := app.Group("/api")
+	api.Post("/create_books", r.CreateBook) //calling a method called createBook
+	api.Delete("/delete_book/:id", r.DeleteBook)
+	api.Get("/get_books/:id", r.GetBookByID)
+	api.Get("/books", r.GetBooks)
 
 }
 
