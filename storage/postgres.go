@@ -9,12 +9,12 @@ import (
 
 // Config struct holds the configuration needed to connect to the PostgreSQL database
 type Config struct {
-	Host     string // Database server address
-	Port     string // Database server port
-	Password string // Password for the database user
-	User     string // Username for the database connection
-	DBName   string // Name of the PostgreSQL database
-	SSLMode  string // SSL mode for the connection (e.g., "disable", "require", etc.)
+	Host string // Database server address
+	Port string // Database server port
+	// Password string // Password for the database user
+	// User     string // Username for the database connection
+	DBName  string // Name of the PostgreSQL database
+	SSLMode string // SSL mode for the connection (e.g., "disable", "require", etc.)
 }
 
 // NewConnection function creates a new connection to the PostgreSQL database using GORM.
@@ -22,13 +22,13 @@ type Config struct {
 func NewConnection(config *Config) (*gorm.DB, error) {
 	// Build the Data Source Name (DSN) string using the provided configuration.
 	// This DSN is required to establish the database connection.
-	dsn := fmt.Sprintf("host=%s port=%s password=%s user=%s dbname=%s sslMode=%s",
-		config.Host,     // Host of the database server
-		config.Port,     // Port of the database server
-		config.Password, // Password for the database user
-		config.User,     // Username for the database
-		config.DBName,   // Name of the database to connect to
-		config.SSLMode)  // SSL mode for the connection (e.g., "disable", "require")
+	dsn := fmt.Sprintf("host=%s port=%s dbname=%s sslmode=%s",
+		config.Host, // Host of the database server
+		config.Port, // Port of the database server
+		// config.Password, // Password for the database user
+		// config.User,     // Username for the database
+		config.DBName,  // Name of the database to connect to
+		config.SSLMode) // SSL mode for the connection (e.g., "disable", "require")
 
 	/*
 	 * gorm.Open

@@ -6,6 +6,7 @@ import (
 	"go-fiber-postgres/storage"
 	"log"
 	"net/http"
+	"os"
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/joho/godotenv"
@@ -74,6 +75,7 @@ func (r *Repository) DeleteBook(context *fiber.Ctx) error {
 	// Retrieve the "id" parameter from the URL path.
 	id := context.Params("id")
 
+	fmt.Printf("mamata1 %v", id)
 	// Check if the "id" parameter is empty. If it is, return a 400 Bad Request response.
 	if id == "" {
 		context.Status(http.StatusBadRequest).JSON(&fiber.Map{
@@ -188,10 +190,23 @@ func main() {
 		log.Fatal(err)
 	}
 
+	config := &storage.Config{
+		Host:    os.Getenv("DB_HOST"),
+		Port:    os.Getenv("DB_PORT"),
+		DBName:  os.Getenv("DB_NAME"),
+		SSLMode: os.Getenv("DB_SSLMode"),
+	}
+
 	db, err := storage.NewConnection(config) //from env
 
 	if err != nil {
 		log.Fatal("Could not load the database")
+	}
+
+	err = models.MigrateBooks(db)
+
+	if err != nil {
+		log.Fatal("could not migrate db")
 	}
 
 	r := Repository{
